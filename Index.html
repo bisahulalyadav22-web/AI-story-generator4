@@ -1,0 +1,311 @@
+# AI-story-generator4
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI पर्सनल स्टोरी और वीडियो जनरेटर</title>
+    <style>
+        :root {
+            --primary: #8a2be2;
+            --secondary: #4a00e0;
+            --text: #ffffff;
+            --bg-gradient: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 900px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00f2fe, #4facfe, #000);
+            background: linear-gradient(to right, #00c6ff, #0072ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #b0c4de;
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #00c6ff;
+            font-weight: 600;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #00c6ff;
+            box-shadow: 0 0 15px rgba(0, 198, 255, 0.4);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 114, 255, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 198, 255, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        /* Loading / Processing Animations */
+        .status-container {
+            display: none;
+            margin-top: 30px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #00c6ff, #0072ff);
+            transition: width 0.4s ease;
+        }
+
+        .status-text {
+            font-style: italic;
+            color: #a0aec0;
+            text-align: center;
+        }
+
+        /* Results Styling */
+        .output-container {
+            display: none;
+            margin-top: 40px;
+            gap: 25px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            margin-bottom: 15px;
+            color: #00c6ff;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 8px;
+        }
+
+        .script-box {
+            white-space: pre-line;
+            line-height: 1.6;
+            color: #e2e8f0;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        /* Video Preview Area */
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .video-simulation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-size: cover;
+            background-position: center;
+            animation: pulseBackground 10s infinite alternate;
+        }
+
+        .video-overlay-text {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.1rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulseBackground {
+            0% { filter: hue-rotate(0deg) brightness(0.8); }
+            100% { filter: hue-rotate(45deg) brightness(1.1); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.01); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>AI Story & Video Generator</h1>
+    <p class="subtitle">अपनी पर्सनल स्टोरी, स्क्रिप्ट और AI जेनरेटेड वीडियो तुरंत पाएं</p>
+
+    <!-- Input Form -->
+    <div class="input-group">
+        <label for="prompt">कहानी का मुख्य विचार या अपना नाम/थीम लिखें:</label>
+        <textarea id="prompt" rows="3" placeholder="उदाहरण: राहुल की अंतरिक्ष यात्रा, जो 2050 में मंगल ग्रह पर एक नया शहर ढूंढता है..."></textarea>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+        <div class="input-group">
+            <label for="genre">स्टोरी का जॉनर (Genre):</label>
+            <select id="genre">
+                <option value="Sci-Fi / सस्पेंस">Sci-Fi / सस्पेंस</option>
+                <option value="हॉरर / डरावनी">हॉरर / डरावनी</option>
+                <option value="मोटिवेशनल / प्रेरणादायक">मोटिवेशनल / प्रेरणादायक</option>
+                <option value="लव स्टोरी / रोमांटिक">लव स्टोरी / रोमांटिक</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label for="videoStyle">वीडियो का विजुअल स्टाइल:</label>
+            <select id="videoStyle">
+                <option value="3D Cinematic Animation">3D सिनेमैटिक एनीमेशन</option>
+                <option value="Cyberpunk Realistic">साइबरपंक रियलिस्टिक</option>
+                <option value="Anime Style">अनिमे / कार्टून स्टाइल</option>
+                <option value="Historical Epic">ऐतिहासिक महाकाव्य</option>
+            </select>
+        </div>
+    </div>
+
+    <button class="btn" onclick="generateAIContent()">AI स्टोरी और वीडियो जेनरेट करें</button>
+
+    <!-- Loader -->
+    <div class="status-container" id="statusContainer">
+        <p class="status-text" id="statusText">AI आपकी डिटेल्स का विश्लेषण कर रहा है...</p>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <!-- Outputs Section -->
+    <div class="output-container" id="outputContainer">
+        
+        <!-- Script & Story Card -->
+        <div class="card">
+            <h3>📝 जेनरेटेड पर्सनल स्टोरी स्क्रिप्ट</h3>
+            <div class="script-box" id="scriptOutput"></div>
+        </div>
+
+        <!-- Video Player Card -->
+        <div class="card">
+            <h3>🎬 AI वीडियो आउटपुट (सिमुलेशन)</h3>
+            <div class="video-wrapper">
+                <div class="video-simulation" id="videoSim" style="background-image: url('https://unsplash.com');">
+                    <div class="video-overlay-text" id="videoSubtitles">वीडियो लोड हो रहा है...</div>
+                </div>
+            </div>
+            <p style="font-size: 0.85rem; color: #a0aec0; margin-top: 10px; text-align: center;">
+                💡 यह AI वीडियो जनरेशन का लाइव CSS-ग्राफिक्स प्रीव्यू है।
+            </p>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function generateAIContent() {
+    const promptValue = document.getElementById('prompt').value.trim();
